@@ -1,0 +1,6 @@
+.contenedor-esquina {
+    display: flex;
+    justify-content: flex-end; /* Derecha */
+    align-items: flex-start;  /* Arriba */
+    height: 100vh;
+  }

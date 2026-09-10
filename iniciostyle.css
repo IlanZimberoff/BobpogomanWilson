@@ -1,42 +1,97 @@
-*{
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
+body {
+  background-color: white;
+  font-family: Arial, sans-serif;
+  width: 100vw;
+  height: 100vh;
+}
 
-.hola{
+.hola {
+  width: 100%;
+  height: 100vh;
+  padding: 35px;
+  border: 8px solid #222;
   display: flex;
-background-color: #00ffff;
-padding: 10px;
-border: 10px;
-flex-direction: column;
-align-items: center;
-
-  }
-
-  .Jugar{
-    background-color: blue;
-height: 40px;
-width: 40px;
-margin: 20px;
-text-align: center;
-  }  
-
-
-.opciones{
-    background-color: rgb(10, 104, 68); 
-    height: 40px;
-    width: 80px;
-    margin: 20px;
-    text-align: center;
+  gap: 50px;
 }
 
+.menu {
+  width: 30%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-.Salir{
-    background-color: rgb(104, 10, 38); 
-    height: 40px;
-    width: 40px;
-    margin: 20px;
-    text-align: center;
+.titulo {
+  width: 315px;
+  height: 70px;
+  background-color: #1760c5;
+  color: white;
+  border-radius: 7px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 40px;
+  font-weight: bold;
+  margin-bottom: 70px;
+}
+
+.Jugar {
+  width: 250px;
+  height: 70px;
+  background-color: #1760c5;
+  color: white;
+  border: none;
+  border-radius: 7px;
+  font-size: 32px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 25px;
+}
+
+.opciones {
+  width: 250px;
+  height: 55px;
+  background-color: #1760c5;
+  color: white;
+  border: none;
+  border-radius: 7px;
+  font-size: 23px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 25px;
+}
+
+.Salir {
+  width: 250px;
+  height: 55px;
+  background-color: #1760c5;
+  color: white;
+  border: none;
+  border-radius: 7px;
+  font-size: 23px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.imagenes {
+  flex: 1;
+  height: 100%;
+  background-color: #1760c5;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.imagenes img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }

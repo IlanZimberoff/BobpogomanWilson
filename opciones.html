@@ -1,14 +1,105 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Opciones</title>
     <link rel="stylesheet" href="opciones.css">
 </head>
 
 <body>
+
     <div class="contenedor-esquina">
-        <a href="inicio.html"> <button>volver</button></a></div>
+        <a href="inicio.html">
+            <button class="back">Back</button>
+        </a>
+    </div>
+
+    <main class="opciones">
+
+        <div class="titulo">
+            OPCIONES
+        </div>
+
+        <section class="configuracion">
+
+            <div class="fila">
+                <button class="boton-opcion">
+                    VOLUMEN
+                </button>
+
+                <input
+                    type="range"
+                    id="volumen"
+                    class="slider"
+                    min="0"
+                    max="100"
+                    value="70"
+                >
+            </div>
+
+            <div class="fila">
+                <button class="boton-opcion">
+                    BRILLO
+                </button>
+
+                <input
+                    type="range"
+                    id="brillo"
+                    class="slider"
+                    min="0"
+                    max="100"
+                    value="60"
+                >
+            </div>
+
+        </section>
+
+        <section class="controles">
+
+            <button class="boton-opcion controles-titulo">
+                CONTROLES
+            </button>
+
+            <div class="lista-controles">
+
+                <div class="control">
+                    <span>Moverse a la izquierda</span>
+
+                    <button class="keybind" data-action="izquierda">
+                        A
+                    </button>
+                </div>
+
+                <div class="control">
+                    <span>Moverse a la derecha</span>
+
+                    <button class="keybind" data-action="derecha">
+                        D
+                    </button>
+                </div>
+
+                <div class="control">
+                    <span>Saltar</span>
+
+                    <button class="keybind" data-action="saltar">
+                        SPACE
+                    </button>
+                </div>
+
+            </div>
+
+        </section>
+
+        <a href="inicio.html">
+            <button class="guardar">
+                Guardar y Volver
+            </button>
+        </a>
+
+    </main>
+
+    <script src="opciones.js"></script>
+
 </body>
 </html>

@@ -14,7 +14,7 @@ keybinds.forEach(function(boton) {
         document.addEventListener("keydown", detectarTecla);
 
         function detectarTecla(evento) {
-
+ 
             evento.preventDefault();
 
             let tecla = evento.key;

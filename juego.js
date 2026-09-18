@@ -25,7 +25,6 @@ let keys;
 let platforms;
 let jumpCooldown = 0;
 let isPaused = false;
-let pauseMenu;
 
 function preload() {
     let g = this.add.graphics();
@@ -86,7 +85,7 @@ function create() {
 
     player.customRotation = 0;
 
-    createUI.call(this);
+    createBottomBar.call(this);
 }
 
 function update(time, delta) {
@@ -169,112 +168,79 @@ function createBlockRow(startX, y, count) {
     }
 }
 
-function createUI() {
-    const pauseBtn = this.add.text(20, 20, 'MENU', {
-        fontSize: '20px',
-        fill: '#ffffff',
-        backgroundColor: '#1760c5',
-        padding: { x: 15, y: 10 }
-    })
-    .setScrollFactor(0)
-    .setInteractive({ useHandCursor: true });
+function createBottomBar() {
+    const barHeight = 60;
+    const barY = window.innerHeight - barHeight;
 
-    pauseMenu = this.add.container(0, 0).setScrollFactor(0).setVisible(false);
+    // Fondo de la barra de tareas
+    const barBg = this.add.rectangle(window.innerWidth / 2, barY + (barHeight / 2), window.innerWidth, barHeight, 0x111111, 0.9)
+        .setScrollFactor(0)
+        .setDepth(100);
 
-    const bg = this.add.rectangle(window.innerWidth / 2, window.innerHeight / 2, 360, 380, 0x000000, 0.85);
-    bg.setStrokeStyle(4, 0x1760c5);
-
-    const title = this.add.text(window.innerWidth / 2, window.innerHeight / 2 - 140, 'OPCIONES', {
-        fontSize: '28px',
-        fontWeight: 'bold',
-        fill: '#ffffff'
-    }).setOrigin(0.5);
-
-    const volText = this.add.text(window.innerWidth / 2 - 130, window.innerHeight / 2 - 80, 'VOLUMEN', {
-        fontSize: '18px',
-        fill: '#ffffff'
-    });
-
-    const volVal = this.add.text(window.innerWidth / 2 + 90, window.innerHeight / 2 - 80, '70%', {
-        fontSize: '18px',
-        fill: '#ffffff'
-    });
-
-    const volDown = this.add.text(window.innerWidth / 2 + 30, window.innerHeight / 2 - 85, '-', {
-        fontSize: '22px', fill: '#ffffff', backgroundColor: '#1760c5', padding: { x: 10, y: 2 }
-    }).setInteractive({ useHandCursor: true });
-
-    const volUp = this.add.text(window.innerWidth / 2 + 60, window.innerHeight / 2 - 85, '+', {
-        fontSize: '22px', fill: '#ffffff', backgroundColor: '#1760c5', padding: { x: 8, y: 2 }
-    }).setInteractive({ useHandCursor: true });
+    const btnStyle = { fontSize: '15px', fontWeight: 'bold', fill: '#ffffff', backgroundColor: '#1760c5', padding: { x: 10, y: 6 } };
+    const textStyle = { fontSize: '15px', fill: '#ffffff' };
 
     let currentVol = 70;
+    let currentBri = 60;
+
+    // Botón Guardar
+    const saveBtn = this.add.text(20, barY + 15, 'GUARDAR', btnStyle)
+        .setScrollFactor(0)
+        .setDepth(101)
+        .setInteractive({ useHandCursor: true });
+
+    saveBtn.on('pointerdown', () => {
+        // Lógica de guardado (por ejemplo, guardar posición en localStorage)
+        localStorage.setItem('pogo_player_x', player.x);
+        localStorage.setItem('pogo_player_y', player.y);
+        
+        saveBtn.setBackgroundColor('#28a745');
+        saveBtn.setText('¡GUARDADO!');
+        this.time.delayedCall(1500, () => {
+            saveBtn.setBackgroundColor('#1760c5');
+            saveBtn.setText('GUARDAR');
+        });
+    });
+
+    // Control de Volumen
+    const volLabel = this.add.text(140, barY + 20, 'VOL:', textStyle).setScrollFactor(0).setDepth(101);
+    const volVal = this.add.text(250, barY + 20, `${currentVol}%`, textStyle).setScrollFactor(0).setDepth(101);
+
+    const volDown = this.add.text(185, barY + 15, '-', btnStyle).setScrollFactor(0).setDepth(101).setInteractive({ useHandCursor: true });
+    const volUp = this.add.text(215, barY + 15, '+', btnStyle).setScrollFactor(0).setDepth(101).setInteractive({ useHandCursor: true });
+
     volDown.on('pointerdown', () => {
         currentVol = Math.max(0, currentVol - 10);
-        volVal.setText(currentVol + '%');
+        volVal.setText(`${currentVol}%`);
     });
+
     volUp.on('pointerdown', () => {
         currentVol = Math.min(100, currentVol + 10);
-        volVal.setText(currentVol + '%');
+        volVal.setText(`${currentVol}%`);
     });
 
-    const briText = this.add.text(window.innerWidth / 2 - 130, window.innerHeight / 2 - 20, 'BRILLO', {
-        fontSize: '18px',
-        fill: '#ffffff'
-    });
+    // Control de Brillo
+    const briLabel = this.add.text(310, barY + 20, 'BRILLO:', textStyle).setScrollFactor(0).setDepth(101);
+    const briVal = this.add.text(445, barY + 20, `${currentBri}%`, textStyle).setScrollFactor(0).setDepth(101);
 
-    const briVal = this.add.text(window.innerWidth / 2 + 90, window.innerHeight / 2 - 20, '60%', {
-        fontSize: '18px',
-        fill: '#ffffff'
-    });
+    const briDown = this.add.text(380, barY + 15, '-', btnStyle).setScrollFactor(0).setDepth(101).setInteractive({ useHandCursor: true });
+    const briUp = this.add.text(410, barY + 15, '+', btnStyle).setScrollFactor(0).setDepth(101).setInteractive({ useHandCursor: true });
 
-    const briDown = this.add.text(window.innerWidth / 2 + 30, window.innerHeight / 2 - 25, '-', {
-        fontSize: '22px', fill: '#ffffff', backgroundColor: '#1760c5', padding: { x: 10, y: 2 }
-    }).setInteractive({ useHandCursor: true });
-
-    const briUp = this.add.text(window.innerWidth / 2 + 60, window.innerHeight / 2 - 25, '+', {
-        fontSize: '22px', fill: '#ffffff', backgroundColor: '#1760c5', padding: { x: 8, y: 2 }
-    }).setInteractive({ useHandCursor: true });
-
-    let currentBri = 60;
     briDown.on('pointerdown', () => {
         currentBri = Math.max(0, currentBri - 10);
-        briVal.setText(currentBri + '%');
+        briVal.setText(`${currentBri}%`);
     });
+
     briUp.on('pointerdown', () => {
         currentBri = Math.min(100, currentBri + 10);
-        briVal.setText(currentBri + '%');
+        briVal.setText(`${currentBri}%`);
     });
 
-    const resumeBtn = this.add.text(window.innerWidth / 2, window.innerHeight / 2 + 50, 'CONTINUAR', {
-        fontSize: '18px',
-        fontWeight: 'bold',
-        fill: '#ffffff',
-        backgroundColor: '#1760c5',
-        padding: { x: 20, y: 8 }
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-
-    const menuBtn = this.add.text(window.innerWidth / 2, window.innerHeight / 2 + 110, 'MENU PRINCIPAL', {
-        fontSize: '18px',
-        fontWeight: 'bold',
-        fill: '#ffffff',
-        backgroundColor: '#d9534f',
-        padding: { x: 20, y: 8 }
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-
-    pauseMenu.add([bg, title, volText, volVal, volDown, volUp, briText, briVal, briDown, briUp, resumeBtn, menuBtn]);
-
-    pauseBtn.on('pointerdown', () => {
-        isPaused = true;
-        this.physics.pause();
-        pauseMenu.setVisible(true);
-    });
-
-    resumeBtn.on('pointerdown', () => {
-        isPaused = false;
-        this.physics.resume();
-        pauseMenu.setVisible(false);
-    });
+    // Botón Menú Principal
+    const menuBtn = this.add.text(window.innerWidth - 170, barY + 15, 'MENU PRINCIPAL', {
+        ...btnStyle,
+        backgroundColor: '#d9534f'
+    }).setScrollFactor(0).setDepth(101).setInteractive({ useHandCursor: true });
 
     menuBtn.on('pointerdown', () => {
         window.location.href = 'inicio.html';

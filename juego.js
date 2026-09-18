@@ -113,9 +113,11 @@ function update(time, delta) {
 
     if (touchGround && jumpCooldown <= 0) {
         let jumpForce = 680;
+        let isSuperJump = false;
         
         if (keys.space.isDown) {
             jumpForce = 920;
+            isSuperJump = true;
         }
 
         const angle = player.customRotation - Math.PI / 2;
@@ -125,12 +127,58 @@ function update(time, delta) {
         player.setVelocityX(player.body.velocity.x + vx);
         player.setVelocityY(vy);
 
+        if (isSuperJump) {
+            createAirBurstFX(this, player.x, player.y + 16, player.customRotation);
+        }
+
         jumpCooldown = 250;
     }
 
     if (touchGround && (Math.abs(player.customRotation) > 1.2)) {
         player.setVelocityX(player.body.velocity.x * 1.05);
     }
+}
+
+function createAirBurstFX(scene, x, y, rotation) {
+    const particles = [];
+    const baseAngle = rotation + Math.PI / 2;
+
+    for (let i = 0; i < 12; i++) {
+        const spread = (Math.random() - 0.5) * 0.8;
+        const angle = baseAngle + spread;
+        const speed = 150 + Math.random() * 200;
+        
+        const graphic = scene.add.graphics();
+        graphic.fillStyle(0xffffff, 0.9);
+        graphic.fillCircle(0, 0, Math.random() * 4 + 2);
+        graphic.x = x;
+        graphic.y = y;
+
+        particles.push({
+            gfx: graphic,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            life: 1.0
+        });
+    }
+
+    const timer = scene.time.addEvent({
+        delay: 16,
+        repeat: 20,
+        callback: () => {
+            particles.forEach(p => {
+                p.gfx.x += p.vx * 0.016;
+                p.gfx.y += p.vy * 0.016;
+                p.life -= 0.05;
+                p.gfx.setAlpha(Math.max(0, p.life));
+                p.gfx.setScale(Math.max(0, p.life));
+            });
+        }
+    });
+
+    scene.time.delayedCall(400, () => {
+        particles.forEach(p => p.gfx.destroy());
+    });
 }
 
 function handleCollision(playerObj, platformObj) {
@@ -172,37 +220,47 @@ function createBottomBar() {
     const barHeight = 60;
     const barY = window.innerHeight - barHeight;
 
-    // Fondo de la barra de tareas
     const barBg = this.add.rectangle(window.innerWidth / 2, barY + (barHeight / 2), window.innerWidth, barHeight, 0x111111, 0.9)
         .setScrollFactor(0)
         .setDepth(100);
 
-    const btnStyle = { fontSize: '15px', fontWeight: 'bold', fill: '#ffffff', backgroundColor: '#1760c5', padding: { x: 10, y: 6 } };
-    const textStyle = { fontSize: '15px', fill: '#ffffff' };
+    const btnStyle = { 
+        fontFamily: 'Arial', 
+        fontSize: '15px', 
+        fontWeight: 'bold', 
+        fill: '#000000', 
+        backgroundColor: '#ffffff', 
+        padding: { x: 10, y: 6 } 
+    };
+    
+    const textStyle = { 
+        fontFamily: 'Arial', 
+        fontSize: '15px', 
+        fill: '#ffffff' 
+    };
 
     let currentVol = 70;
     let currentBri = 60;
 
-    // Botón Guardar
     const saveBtn = this.add.text(20, barY + 15, 'GUARDAR', btnStyle)
         .setScrollFactor(0)
         .setDepth(101)
         .setInteractive({ useHandCursor: true });
 
     saveBtn.on('pointerdown', () => {
-        // Lógica de guardado (por ejemplo, guardar posición en localStorage)
         localStorage.setItem('pogo_player_x', player.x);
         localStorage.setItem('pogo_player_y', player.y);
         
         saveBtn.setBackgroundColor('#28a745');
+        saveBtn.setColor('#ffffff');
         saveBtn.setText('¡GUARDADO!');
         this.time.delayedCall(1500, () => {
-            saveBtn.setBackgroundColor('#1760c5');
+            saveBtn.setBackgroundColor('#ffffff');
+            saveBtn.setColor('#000000');
             saveBtn.setText('GUARDAR');
         });
     });
 
-    // Control de Volumen
     const volLabel = this.add.text(140, barY + 20, 'VOL:', textStyle).setScrollFactor(0).setDepth(101);
     const volVal = this.add.text(250, barY + 20, `${currentVol}%`, textStyle).setScrollFactor(0).setDepth(101);
 
@@ -219,7 +277,6 @@ function createBottomBar() {
         volVal.setText(`${currentVol}%`);
     });
 
-    // Control de Brillo
     const briLabel = this.add.text(310, barY + 20, 'BRILLO:', textStyle).setScrollFactor(0).setDepth(101);
     const briVal = this.add.text(445, barY + 20, `${currentBri}%`, textStyle).setScrollFactor(0).setDepth(101);
 
@@ -236,11 +293,10 @@ function createBottomBar() {
         briVal.setText(`${currentBri}%`);
     });
 
-    // Botón Menú Principal
-    const menuBtn = this.add.text(window.innerWidth - 170, barY + 15, 'MENU PRINCIPAL', {
-        ...btnStyle,
-        backgroundColor: '#d9534f'
-    }).setScrollFactor(0).setDepth(101).setInteractive({ useHandCursor: true });
+    const menuBtn = this.add.text(window.innerWidth - 170, barY + 15, 'MENU PRINCIPAL', btnStyle)
+        .setScrollFactor(0)
+        .setDepth(101)
+        .setInteractive({ useHandCursor: true });
 
     menuBtn.on('pointerdown', () => {
         window.location.href = 'inicio.html';

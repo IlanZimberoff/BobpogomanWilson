@@ -26,15 +26,6 @@ let platforms;
 let jumpCooldown = 0;
 let isPaused = false;
 
-// ---------- KINETIC ENERGY TUNING ----------
-// E = 1/2 * m * v^2  (m = 1, so E = 1/2 * v^2)
-const ENERGY_RETENTION = 0.2;      // how much of the previous bounce's energy survives into this one
-const ENERGY_TRANSFER_SOFT = 0.3;  // efficiency of the spring when you DON'T hold space (lossy landing)
-const ENERGY_TRANSFER_CHARGED = 0.6; // efficiency when you hold space at landing (tighter, more elastic transfer)
-const ENERGY_TO_FORCE = 0.4;       // how much stored energy converts into extra launch force
-const MAX_ENERGY = 450000;         // cap so the bounce can't run away forever
-const ENERGY_DECAY_PER_MS = 0.0009; // bleed-off while airborne/idle, so you can't bank energy indefinitely
-
 function preload() {
     let g = this.add.graphics();
     g.fillStyle(0x1760c5, 1);
@@ -69,7 +60,7 @@ function create() {
 
     const startX = 300;
     const startY = mapHeight - 150;
-
+    
     player = this.physics.add.sprite(startX, startY, 'player_head');
     player.setBounce(0.3);
     player.setCollideWorldBounds(true);
@@ -94,11 +85,6 @@ function create() {
 
     player.customRotation = 0;
 
-    // kinetic energy state
-    player.kineticEnergy = 0;   // energy currently stored in the spring, carried between bounces
-    player.prevVY = 0;          // velocity.y from the previous frame, used to catch impact speed on landing
-
-    createEnergyMeter.call(this);
     createBottomBar.call(this);
 }
 
@@ -126,32 +112,13 @@ function update(time, delta) {
     const touchGround = player.body.blocked.down || player.body.touching.down;
 
     if (touchGround && jumpCooldown <= 0) {
-        // --- capture the impact and feed the spring's stored kinetic energy ---
-        // prevVY is the falling speed the frame right before arcade physics resolved the collision,
-        // so it approximates how hard the pogo tip just hit the ground.
-        const impactSpeed = Math.max(0, player.prevVY);
-        const impactEnergy = 0.5 * impactSpeed * impactSpeed;
-
-        const chargedLanding = keys.space.isDown;
-        const transferEfficiency = chargedLanding ? ENERGY_TRANSFER_CHARGED : ENERGY_TRANSFER_SOFT;
-
-        player.kineticEnergy = Phaser.Math.Clamp(
-            player.kineticEnergy * ENERGY_RETENTION + impactEnergy * transferEfficiency,
-            0,
-            MAX_ENERGY
-        );
-
         let jumpForce = 680;
         let isSuperJump = false;
-
-        if (chargedLanding) {
+        
+        if (keys.space.isDown) {
             jumpForce = 920;
             isSuperJump = true;
         }
-
-        // convert stored energy back into launch speed: v = sqrt(2E)
-        const energyBoost = Math.sqrt(2 * player.kineticEnergy) * ENERGY_TO_FORCE;
-        jumpForce += energyBoost;
 
         const angle = player.customRotation - Math.PI / 2;
         const vx = Math.cos(angle) * jumpForce;
@@ -160,27 +127,16 @@ function update(time, delta) {
         player.setVelocityX(player.body.velocity.x + vx);
         player.setVelocityY(vy);
 
-        // spending the energy on the jump drains nearly all of it; only a trace survives for the retention curve above
-        player.kineticEnergy *= 0.12;
-
-        if (isSuperJump || energyBoost > 180) {
+        if (isSuperJump) {
             createAirBurstFX(this, player.x, player.y + 16, player.customRotation);
         }
 
         jumpCooldown = 250;
-    } else {
-        // slow passive decay so energy can't just sit there forever while airborne/idle
-        player.kineticEnergy = Math.max(0, player.kineticEnergy - player.kineticEnergy * ENERGY_DECAY_PER_MS * delta);
     }
 
     if (touchGround && (Math.abs(player.customRotation) > 1.2)) {
         player.setVelocityX(player.body.velocity.x * 1.05);
     }
-
-    updateEnergyMeter();
-
-    // remember this frame's vertical speed so next frame can detect how hard we land
-    player.prevVY = player.body.velocity.y;
 }
 
 function createAirBurstFX(scene, x, y, rotation) {
@@ -191,7 +147,7 @@ function createAirBurstFX(scene, x, y, rotation) {
         const spread = (Math.random() - 0.5) * 0.8;
         const angle = baseAngle + spread;
         const speed = 150 + Math.random() * 200;
-
+        
         const graphic = scene.add.graphics();
         graphic.fillStyle(0xffffff, 0.9);
         graphic.fillCircle(0, 0, Math.random() * 4 + 2);
@@ -260,31 +216,6 @@ function createBlockRow(startX, y, count) {
     }
 }
 
-// ---------- KINETIC ENERGY METER (small, unobtrusive, top-left) ----------
-let energyBarBg, energyBarFill;
-
-function createEnergyMeter() {
-    const barW = 140, barH = 10;
-    const x = 20, y = 20;
-
-    energyBarBg = this.add.rectangle(x, y, barW, barH, 0x000000, 0.5)
-        .setOrigin(0, 0)
-        .setScrollFactor(0)
-        .setDepth(100);
-
-    energyBarFill = this.add.rectangle(x + 1, y + 1, 1, barH - 2, 0xff5533, 0.95)
-        .setOrigin(0, 0)
-        .setScrollFactor(0)
-        .setDepth(101);
-}
-
-function updateEnergyMeter() {
-    if (!energyBarFill) return;
-    const frac = Phaser.Math.Clamp(player.kineticEnergy / MAX_ENERGY, 0, 1);
-    const maxW = 138;
-    energyBarFill.width = Math.max(1, maxW * frac);
-}
-
 function createBottomBar() {
     const barHeight = 60;
     const barY = window.innerHeight - barHeight;
@@ -293,19 +224,19 @@ function createBottomBar() {
         .setScrollFactor(0)
         .setDepth(100);
 
-    const btnStyle = {
-        fontFamily: 'Arial',
-        fontSize: '15px',
-        fontWeight: 'bold',
-        fill: '#000000',
-        backgroundColor: '#ffffff',
-        padding: { x: 10, y: 6 }
+    const btnStyle = { 
+        fontFamily: 'Arial', 
+        fontSize: '15px', 
+        fontWeight: 'bold', 
+        fill: '#000000', 
+        backgroundColor: '#ffffff', 
+        padding: { x: 10, y: 6 } 
     };
-
-    const textStyle = {
-        fontFamily: 'Arial',
-        fontSize: '15px',
-        fill: '#ffffff'
+    
+    const textStyle = { 
+        fontFamily: 'Arial', 
+        fontSize: '15px', 
+        fill: '#ffffff' 
     };
 
     let currentVol = 70;
@@ -319,7 +250,7 @@ function createBottomBar() {
     saveBtn.on('pointerdown', () => {
         localStorage.setItem('pogo_player_x', player.x);
         localStorage.setItem('pogo_player_y', player.y);
-
+        
         saveBtn.setBackgroundColor('#28a745');
         saveBtn.setColor('#ffffff');
         saveBtn.setText('¡GUARDADO!');
